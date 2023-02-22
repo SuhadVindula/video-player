@@ -138,6 +138,71 @@ public class AppInitializer extends Application {
         mediaView.fitWidthProperty().bind(stackPane.widthProperty());
         mediaView.fitHeightProperty().bind(stackPane.heightProperty());
 
+        lblOpen.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("Video Files", "*.mp4", "*.avi", "*.flv"));
+            fileChooser.setTitle("Open a video file");
+            File videoFile = fileChooser.showOpenDialog(stgVideoPlayer);
+            if (videoFile != null) {
+                Media media = new Media(videoFile.toURI().toString());
+                MediaPlayer videoPlayer = new MediaPlayer(media);
+                mediaView.setMediaPlayer(videoPlayer);
+                mediaView.toFront();
+                videoPlayer.play();
+                lblPlay.setGraphic(imgViewPause);
+                lblPlay.setTooltip(new Tooltip("Pause"));
 
+                videoPlayer.volumeProperty().bind(sldVolume.valueProperty());
+                videoPlayer.muteProperty().bind(isMute);
+            }
+        });
+
+        lblStop.setOnMouseClicked(event -> {
+            MediaPlayer videoPlayer = mediaView.getMediaPlayer();
+
+            if (videoPlayer != null) {
+                videoPlayer.stop();
+                mediaView.setMediaPlayer(null);
+                lblBackground.toFront();
+
+                lblPlay.setGraphic(imgViewPlay);
+                lblPlay.setTooltip(new Tooltip("Play"));
+            }
+        });
+
+        lblPlay.setOnMouseClicked(event -> {
+            MediaPlayer videoPlayer = mediaView.getMediaPlayer();
+            if (videoPlayer == null) return;
+
+            if (videoPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                videoPlayer.pause();
+                lblPlay.setGraphic(imgViewPlay);
+                lblPlay.setTooltip(new Tooltip("Play"));
+            } else {
+                videoPlayer.play();
+                lblPlay.setGraphic(imgViewPause);
+                lblPlay.setTooltip(new Tooltip("Pause"));
+            }
+        });
+
+        lblSpeaker.setOnMouseClicked(event -> {
+            isMute.set(!isMute.get());
+            if (isMute.get()) {
+                lblSpeaker.setGraphic(imgViewMute);
+                lblSpeaker.setTooltip(new Tooltip("Unmute"));
+            } else {
+                lblSpeaker.setGraphic(imgViewSpeaker);
+                lblSpeaker.setTooltip(new Tooltip("Mute"));
+            }
+        });
+
+        stgVideoPlayer.setOnCloseRequest(event -> {
+            MediaPlayer videoPlayer = mediaView.getMediaPlayer();
+            System.out.println(videoPlayer);
+            if (videoPlayer != null) videoPlayer.stop();
+            mediaView.setMediaPlayer(null);
+            stgVideoPlayer = null;
+        });
     }
 }
